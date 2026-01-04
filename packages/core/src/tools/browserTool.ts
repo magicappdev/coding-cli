@@ -12,6 +12,7 @@ import type { MessageBus } from '../confirmation-bus/message-bus.js';
 
 interface BrowserToolParams {
   task: string;
+  allowedDomains?: string[];
 }
 
 class BrowserToolInvocation extends BaseToolInvocation<
@@ -53,6 +54,7 @@ class BrowserToolInvocation extends BaseToolInvocation<
         this.params.task,
         signal,
         updateOutput,
+        this.params.allowedDomains,
       );
       return {
         llmContent: [{ text: result || 'Task completed' }],
@@ -89,6 +91,12 @@ export class BrowserTool extends BaseDeclarativeTool<
             type: 'string',
             description:
               'The natural language description of the task to perform.',
+          },
+          allowedDomains: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Optional list of allowed domains the browser agent can navigate to (e.g., ["nytimes.com", "github.com"]). If provided, navigation to other domains will be blocked.',
           },
         },
         required: ['task'],
