@@ -3,30 +3,6 @@
 Hooks allow you to intercept and customize Gemini CLI behavior at specific
 lifecycle events.
 
-> [!WARNING] **Hooks are currently an experimental feature.** To use hooks, you
-> must first enable the experimental hooks system and then toggle the canonical
-> hooks switch. **Enabling the experimental system requires a CLI restart.**
-
-## Enabling Hooks
-
-1.  **Enable the Experiment**: Set `tools.enableHooks` to `true` in your
-    user-level `settings.json` (`~/.gemini/settings.json`).
-2.  **Restart Gemini CLI**: This step is required for the experimental system to
-    initialize.
-3.  **Toggle Hooks**: Set `hooks.enabled` to `true` in your `settings.json`.
-    This can be done at the user or project level.
-
-```json
-{
-  "tools": {
-    "enableHooks": true
-  },
-  "hooks": {
-    "enabled": true
-  }
-}
-```
-
 ## Configuration
 
 Hooks are configured in `settings.json` under the `hooks` key. **Always start by
@@ -36,7 +12,6 @@ quickly.**
 
 ```json
 "hooks": {
-  "enabled": true,
   "BeforeTool": [
     {
       "type": "command",
