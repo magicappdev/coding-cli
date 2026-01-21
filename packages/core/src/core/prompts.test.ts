@@ -17,7 +17,6 @@ import type { Config } from '../config/config.js';
 import { CodebaseInvestigatorAgent } from '../agents/codebase-investigator.js';
 import { GEMINI_DIR } from '../utils/paths.js';
 import { debugLogger } from '../utils/debugLogger.js';
-import { DELEGATE_TO_AGENT_TOOL_NAME } from '../tools/tool-names.js';
 import {
   PREVIEW_GEMINI_MODEL,
   PREVIEW_GEMINI_FLASH_MODEL,
@@ -239,11 +238,11 @@ describe('Core System Prompt (prompts.ts)', () => {
       const prompt = getCoreSystemPrompt(testConfig, mockEnv);
       if (expectCodebaseInvestigator) {
         expect(prompt).toContain(
-          `For complex refactoring, codebase exploration, or system-wide analysis, your **first and primary action** must be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent using the \`${DELEGATE_TO_AGENT_TOOL_NAME}\` tool.`,
+          `For tasks involving multi-file navigation, architectural mapping, or identifying ripple effects, your primary action should be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent.`,
         );
       } else {
         expect(prompt).not.toContain(
-          `Use \`${CodebaseInvestigatorAgent.name}\` for deep analysis of complex tasks.`,
+          `For tasks involving multi-file navigation, architectural mapping, or identifying ripple effects, your primary action should be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent.`,
         );
       }
       expect(prompt).toMatchSnapshot();

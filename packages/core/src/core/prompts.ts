@@ -11,7 +11,6 @@ import {
   READ_FILE_TOOL_NAME,
   ACTIVATE_SKILL_TOOL_NAME,
   GREP_TOOL_NAME,
-  DELEGATE_TO_AGENT_TOOL_NAME,
 } from '../tools/tool-names.js';
 import process from 'node:process';
 import { CodebaseInvestigatorAgent } from '../agents/codebase-investigator.js';
@@ -212,7 +211,7 @@ Once you have provided a final synthesis of your work, do not repeat yourself or
 # Workflow: Development
 Operate using a **Research -> Strategy -> Execution** lifecycle. For the Execution phase, resolve each sub-task through an iterative **Plan -> Act -> Validate** cycle.
 
-1. **Research:** Systematically map the codebase and validate assumptions. Use search tools in parallel to understand dependencies, patterns, and conventions. Use \`${READ_FILE_TOOL_NAME}\` to validate all assumptions. **Prioritize empirical reproduction of reported issues to confirm the failure state.** ${enableCodebaseInvestigator ? `For complex refactoring, codebase exploration, or system-wide analysis, your **first and primary action** must be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent using the \`${DELEGATE_TO_AGENT_TOOL_NAME}\` tool.` : ''}
+1. **Research:** Map the codebase and validate assumptions. ${enableCodebaseInvestigator ? `For tasks involving multi-file navigation, architectural mapping, or identifying ripple effects, your primary action should be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent. It is optimized to build a comprehensive mental model faster and more accurately than manual searching. Manual search tools (e.g., \`${GREP_TOOL_NAME}\`) are preferred only for highly localized verification or if the codebase is small enough that the solution is immediately obvious.` : `Systematically map the codebase and validate assumptions. Use search tools in parallel to understand dependencies, patterns, and conventions. Use \`${READ_FILE_TOOL_NAME}\` to validate all assumptions.`} **Prioritize empirical reproduction of reported issues to confirm the failure state.**
 2. **Strategy:** Formulate a grounded plan. Share a concise summary of your strategy.
 3. **Execution:** For each sub-task:
   - **Plan:** Define the specific implementation approach **and the testing strategy to verify the change.**
