@@ -483,6 +483,8 @@ export class Config {
   fallbackModelHandler?: FallbackModelHandler;
   validationHandler?: ValidationHandler;
   private quotaErrorOccurred: boolean = false;
+  private quotaRemaining: number | undefined = undefined;
+  private quotaLimit: number | undefined = undefined;
   private readonly summarizeToolOutput:
     | Record<string, SummarizeToolOutputSettings>
     | undefined;
@@ -1096,6 +1098,20 @@ export class Config {
 
   getQuotaErrorOccurred(): boolean {
     return this.quotaErrorOccurred;
+  }
+
+  setQuota(remaining: number | undefined, limit: number | undefined): void {
+    this.quotaRemaining = remaining;
+    this.quotaLimit = limit;
+    coreEvents.emitQuotaChanged(remaining, limit);
+  }
+
+  getQuotaRemaining(): number | undefined {
+    return this.quotaRemaining;
+  }
+
+  getQuotaLimit(): number | undefined {
+    return this.quotaLimit;
   }
 
   getEmbeddingModel(): string {

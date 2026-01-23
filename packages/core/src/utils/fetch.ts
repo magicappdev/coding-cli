@@ -61,3 +61,39 @@ export async function fetchWithTimeout(
 export function setGlobalProxy(proxy: string) {
   setGlobalDispatcher(new ProxyAgent(proxy));
 }
+
+export function wrapFetchWithQuotaInterception(
+  fetchFn: typeof fetch,
+  onQuotaUpdate: (
+    remaining: number | undefined,
+    limit: number | undefined,
+  ) => void,
+): typeof fetch {
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
+    const response = await fetchFn(input, init);
+
+    const remaining =
+      response.headers.get('x-ratelimit-remaining') ||
+      response.headers.get('X-RateLimit-Remaining') ||
+      response.headers.get('x-goog-ratelimit-remaining');
+    const limit =
+      response.headers.get('x-ratelimit-limit') ||
+      response.headers.get('X-RateLimit-Limit') ||
+      response.headers.get('x-goog-ratelimit-limit');
+
+    const parseHeader = (val: string | null) => {
+      if (!val) return undefined;
+      const num = parseInt(val, 10);
+      return isNaN(num) ? undefined : num;
+    };
+
+    const remainingNum = parseHeader(remaining);
+    const limitNum = parseHeader(limit);
+
+    if (remainingNum !== undefined || limitNum !== undefined) {
+      onQuotaUpdate(remainingNum, limitNum);
+    }
+
+    return response;
+  };
+}

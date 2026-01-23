@@ -70,6 +70,14 @@ export interface MemoryChangedPayload {
 }
 
 /**
+ * Payload for the 'quota-changed' event.
+ */
+export interface QuotaChangedPayload {
+  remaining: number | undefined;
+  limit: number | undefined;
+}
+
+/**
  * Base payload for hook-related events.
  */
 export interface HookPayload {
@@ -125,6 +133,7 @@ export enum CoreEvent {
   AgentsRefreshed = 'agents-refreshed',
   AdminSettingsChanged = 'admin-settings-changed',
   RetryAttempt = 'retry-attempt',
+  QuotaChanged = 'quota-changed',
 }
 
 export interface CoreEvents extends ExtensionEvents {
@@ -133,6 +142,7 @@ export interface CoreEvents extends ExtensionEvents {
   [CoreEvent.ConsoleLog]: [ConsoleLogPayload];
   [CoreEvent.Output]: [OutputPayload];
   [CoreEvent.MemoryChanged]: [MemoryChangedPayload];
+  [CoreEvent.QuotaChanged]: [QuotaChangedPayload];
   [CoreEvent.ExternalEditorClosed]: never[];
   [CoreEvent.McpClientUpdate]: Array<Map<string, McpClient> | never>;
   [CoreEvent.OauthDisplayMessage]: string[];
@@ -262,6 +272,17 @@ export class CoreEventEmitter extends EventEmitter<CoreEvents> {
    */
   emitRetryAttempt(payload: RetryAttemptPayload): void {
     this.emit(CoreEvent.RetryAttempt, payload);
+  }
+
+  /**
+   * Notifies subscribers that the quota has changed.
+   */
+  emitQuotaChanged(
+    remaining: number | undefined,
+    limit: number | undefined,
+  ): void {
+    const payload: QuotaChangedPayload = { remaining, limit };
+    this.emit(CoreEvent.QuotaChanged, payload);
   }
 
   /**

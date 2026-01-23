@@ -69,6 +69,10 @@ export class CodeAssistServer implements ContentGenerator {
     readonly httpOptions: HttpOptions = {},
     readonly sessionId?: string,
     readonly userTier?: UserTierId,
+    readonly onQuotaUpdate?: (
+      remaining: number | undefined,
+      limit: number | undefined,
+    ) => void,
   ) {}
 
   async generateContentStream(
@@ -284,6 +288,33 @@ export class CodeAssistServer implements ContentGenerator {
     return this.requestPost<void>('recordCodeAssistMetrics', request);
   }
 
+  private extractQuotaHeaders(headers: Record<string, string | string[]>) {
+    if (!this.onQuotaUpdate) return;
+
+    const remaining =
+      headers['x-ratelimit-remaining'] ||
+      headers['X-RateLimit-Remaining'] ||
+      headers['x-goog-ratelimit-remaining'];
+    const limit =
+      headers['x-ratelimit-limit'] ||
+      headers['X-RateLimit-Limit'] ||
+      headers['x-goog-ratelimit-limit'];
+
+    const parseHeader = (val: string | string[] | undefined) => {
+      if (!val) return undefined;
+      const str = Array.isArray(val) ? val[0] : val;
+      const num = parseInt(str, 10);
+      return isNaN(num) ? undefined : num;
+    };
+
+    const remainingNum = parseHeader(remaining);
+    const limitNum = parseHeader(limit);
+
+    if (remainingNum !== undefined || limitNum !== undefined) {
+      this.onQuotaUpdate(remainingNum, limitNum);
+    }
+  }
+
   async requestPost<T>(
     method: string,
     req: object,
@@ -300,6 +331,7 @@ export class CodeAssistServer implements ContentGenerator {
       body: JSON.stringify(req),
       signal,
     });
+    this.extractQuotaHeaders(res.headers as Record<string, string | string[]>);
     return res.data as T;
   }
 
@@ -317,6 +349,7 @@ export class CodeAssistServer implements ContentGenerator {
       responseType: 'json',
       signal,
     });
+    this.extractQuotaHeaders(res.headers as Record<string, string | string[]>);
     return res.data as T;
   }
 
@@ -347,6 +380,8 @@ export class CodeAssistServer implements ContentGenerator {
       body: JSON.stringify(req),
       signal,
     });
+
+    this.extractQuotaHeaders(res.headers as Record<string, string | string[]>);
 
     return (async function* (): AsyncGenerator<T> {
       const rl = readline.createInterface({

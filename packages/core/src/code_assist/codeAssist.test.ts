@@ -64,6 +64,7 @@ describe('codeAssist', () => {
         httpOptions,
         'session-123',
         'free-tier',
+        expect.any(Function),
       );
       expect(generator).toBeInstanceOf(MockedCodeAssistServer);
     });
@@ -89,6 +90,7 @@ describe('codeAssist', () => {
         httpOptions,
         undefined, // No session ID
         'free-tier',
+        expect.any(Function),
       );
       expect(generator).toBeInstanceOf(MockedCodeAssistServer);
     });
