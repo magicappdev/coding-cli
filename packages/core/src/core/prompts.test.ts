@@ -23,6 +23,7 @@ import {
   DEFAULT_GEMINI_MODEL_AUTO,
   DEFAULT_GEMINI_MODEL,
 } from '../config/models.js';
+import { ApprovalMode } from '../policy/types.js';
 
 // Mock tool names if they are dynamically generated or complex
 vi.mock('../tools/ls', () => ({ LSTool: { Name: 'list_directory' } }));
@@ -86,6 +87,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       getSkillManager: vi.fn().mockReturnValue({
         getSkills: vi.fn().mockReturnValue([]),
       }),
+      getApprovalMode: vi.fn().mockReturnValue(ApprovalMode.DEFAULT),
     } as unknown as Config;
   });
 
@@ -238,16 +240,54 @@ describe('Core System Prompt (prompts.ts)', () => {
       const prompt = getCoreSystemPrompt(testConfig, mockEnv);
       if (expectCodebaseInvestigator) {
         expect(prompt).toContain(
-          `For any task that requires discovering relevant code, understanding architectural implications, or identifying side effects (e.g., refactors, feature additions, or bug fixes), your primary action should be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent.`,
+          `Delegate to specialized sub-agents (e.g., \`${CodebaseInvestigatorAgent.name}\`) for initial orientation and discovery of system-wide implications.`,
         );
       } else {
         expect(prompt).not.toContain(
-          `For any task that requires discovering relevant code, understanding architectural implications, or identifying side effects (e.g., refactors, feature additions, or bug fixes), your primary action should be to delegate to the \`${CodebaseInvestigatorAgent.name}\` agent.`,
+          `Delegate to specialized sub-agents (e.g., \`${CodebaseInvestigatorAgent.name}\`) for initial orientation and discovery of system-wide implications.`,
         );
       }
       expect(prompt).toMatchSnapshot();
     },
   );
+
+  describe('ApprovalMode in System Prompt', () => {
+    it('should include PLAN mode instructions', () => {
+      vi.mocked(mockConfig.getApprovalMode).mockReturnValue(ApprovalMode.PLAN);
+      const prompt = getCoreSystemPrompt(mockConfig, mockEnv);
+      expect(prompt).toContain('# Active Approval Mode: Plan');
+      expect(prompt).toMatchSnapshot();
+    });
+
+    it('should NOT include approval mode instructions for DEFAULT mode', () => {
+      vi.mocked(mockConfig.getApprovalMode).mockReturnValue(
+        ApprovalMode.DEFAULT,
+      );
+      const prompt = getCoreSystemPrompt(mockConfig, mockEnv);
+      expect(prompt).not.toContain('# Active Approval Mode: Plan');
+      expect(prompt).toMatchSnapshot();
+    });
+
+    it('should only list available tools in PLAN mode', () => {
+      vi.mocked(mockConfig.getApprovalMode).mockReturnValue(ApprovalMode.PLAN);
+      // Only enable glob and read_file, disable others (like web search)
+      vi.mocked(mockConfig.getToolRegistry().getAllToolNames).mockReturnValue([
+        'glob',
+        'read_file',
+      ]);
+
+      const prompt = getCoreSystemPrompt(mockConfig, mockEnv);
+
+      // Should include enabled tools
+      expect(prompt).toContain('`glob`');
+      expect(prompt).toContain('`read_file`');
+
+      // Should NOT include disabled tools
+      expect(prompt).not.toContain('`google_web_search`');
+      expect(prompt).not.toContain('`list_directory`');
+      expect(prompt).not.toContain('`search_file_content`');
+    });
+  });
 
   describe('GEMINI_SYSTEM_MD environment variable', () => {
     it.each(['false', '0'])(
