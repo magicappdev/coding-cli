@@ -8,7 +8,7 @@ import {
   renderWithProviders,
   createMockSettings,
 } from '../../../test-utils/render.js';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ToolGroupMessage } from './ToolGroupMessage.js';
 import type { IndividualToolCallDisplay } from '../../types.js';
 import { ToolCallStatus } from '../../types.js';
@@ -16,6 +16,10 @@ import { Scrollable } from '../shared/Scrollable.js';
 import type { Config } from '@google/gemini-cli-core';
 
 describe('<ToolGroupMessage />', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const createToolCall = (
     overrides: Partial<IndividualToolCallDisplay> = {},
   ): IndividualToolCallDisplay => ({
@@ -683,8 +687,8 @@ describe('<ToolGroupMessage />', () => {
         />,
         { config: mockConfig },
       );
-
-      expect(lastFrame()).toBe('');
+      // AskUser tools in progress are rendered by AskUserDialog, so we expect nothing.
+      expect(lastFrame()).toMatchSnapshot();
       unmount();
     });
   });
