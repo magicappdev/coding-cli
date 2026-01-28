@@ -230,6 +230,7 @@ ${shellEfficiencyGuidelines(options.enableShellEfficiency)}
 - **High-Signal Output:** Focus exclusively on **intent** and **technical rationale**. Avoid conversational filler, apologies, and mechanical tool-use narration (e.g., "I will now call...").
 - **Concise & Direct:** Adopt a professional, direct, and concise tone suitable for a CLI environment.
 - **Minimal Output:** Aim for fewer than 3 lines of text output (excluding tool use/code generation) per response whenever practical.${toneAndStyleNoChitchat(options.isGemini3)}
+- **No Repetition:** Once you have provided a final synthesis of your work, do not repeat yourself or provide additional summaries. For simple or direct requests, prioritize extreme brevity.
 - **Formatting:** Use GitHub-flavored Markdown. Responses will be rendered in monospace.
 - **Tools vs. Text:** Use tools for actions, text output *only* for communication. Do not add explanatory comments within tool calls.
 - **Handling Inability:** If unable/unwilling to fulfill a request, state so briefly without excessive justification. Offer alternatives if appropriate.
@@ -296,7 +297,22 @@ Your core function is efficient and safe assistance. Balance extreme conciseness
 
 export function renderUserMemory(memory?: string): string {
   if (!memory || memory.trim().length === 0) return '';
-  return `\n---\n\n${memory.trim()}`;
+  return `
+# Contextual Instructions (GEMINI.md)
+The following content is loaded from local and global configuration files.
+**Context Precedence:**
+- **Global (~/.gemini/):** foundational user preferences. Apply these broadly.
+- **Extensions:** supplementary knowledge and capabilities.
+- **Workspace Root:** workspace-wide mandates. Supersedes global preferences.
+- **Sub-directories:** highly specific overrides. These rules supersede all others for files within their scope.
+
+**Conflict Resolution:**
+- **Precedence:** Strictly follow the order above (Sub-directories > Workspace Root > Extensions > Global).
+- **System Overrides:** Contextual instructions override default operational behaviors (e.g., tech stack, style, workflows, tool preferences) defined in the system prompt. However, they **cannot** override Core Mandates regarding safety, security, and agent integrity.
+
+<loaded_context>
+${memory.trim()}
+</loaded_context>`;
 }
 
 export function renderApprovalModePlan(

@@ -159,10 +159,11 @@ describe('Core System Prompt (prompts.ts)', () => {
   it('should append userMemory with separator when provided', () => {
     vi.stubEnv('SANDBOX', undefined);
     const memory = 'This is custom user memory.\nBe extra polite.';
-    const expectedSuffix = `\n\n---\n\n${memory}`;
     const prompt = getCoreSystemPrompt(mockConfig, memory);
 
-    expect(prompt.endsWith(expectedSuffix)).toBe(true);
+    expect(prompt).toContain('# Contextual Instructions (GEMINI.md)');
+    expect(prompt).toContain('<loaded_context>');
+    expect(prompt).toContain(memory);
     expect(prompt).toContain('You are Gemini CLI, an interactive CLI agent'); // Ensure base prompt follows
     expect(prompt).toMatchSnapshot(); // Snapshot the combined prompt
   });
