@@ -248,7 +248,7 @@ describe('Core System Prompt (prompts.ts)', () => {
           `your **first and primary action** must be to delegate to the '${CodebaseInvestigatorAgent.name}' agent`,
         );
         expect(prompt).toContain(
-          "Use 'search_file_content' and 'glob' search tools extensively",
+          `Use 'grep_search' and 'glob' search tools extensively`,
         );
       }
       expect(prompt).toMatchSnapshot();
